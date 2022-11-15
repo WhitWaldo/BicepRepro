@@ -1,0 +1,163 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.10.61.36676",
+      "templateHash": "9351817088012011917"
+    }
+  },
+  "parameters": {
+    "Location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "m2",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "Name": {
+            "value": "m2"
+          },
+          "Location": {
+            "value": "[parameters('Location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.10.61.36676",
+              "templateHash": "10440623847247519816"
+            }
+          },
+          "parameters": {
+            "Name": {
+              "type": "string"
+            },
+            "Location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            }
+          },
+          "variables": {
+            "type1Name": "type1",
+            "type2Name": "type2",
+            "type3Name": "type3",
+            "types": {
+              "[format('{0}', variables('type1Name'))]": {
+                "count": 1
+              },
+              "[format('{0}', variables('type2Name'))]": {
+                "count": 2
+              },
+              "[format('{0}', variables('type3Name'))]": {
+                "count": 3
+              }
+            }
+          },
+          "resources": [
+            {
+              "copy": {
+                "name": "UAI",
+                "count": "[length(items(variables('types')))]"
+              },
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2022-01-31-preview",
+              "name": "[format('Name-{0}', copyIndex())]",
+              "location": "[parameters('Location')]",
+              "tags": {
+                "count": "[items(variables('types'))[copyIndex()].value.count]"
+              }
+            }
+          ],
+          "outputs": {
+            "TypeNames": {
+              "type": "array",
+              "copy": {
+                "count": "[length(filter(items(variables('types')), lambda('t', not(equals(lambdaVariables('t').value.count, 2)))))]",
+                "input": {
+                  "name": "[filter(items(variables('types')), lambda('t', not(equals(lambdaVariables('t').value.count, 2))))[copyIndex()].key]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "m1",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "Name": {
+            "value": "m1"
+          },
+          "ArrValues": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'm2')).outputs.TypeNames.value]"
+          },
+          "Location": {
+            "value": "[parameters('Location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.10.61.36676",
+              "templateHash": "11202545098643238646"
+            }
+          },
+          "parameters": {
+            "Name": {
+              "type": "string"
+            },
+            "Location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "ArrValues": {
+              "type": "array",
+              "defaultValue": []
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2022-01-31-preview",
+              "name": "[parameters('Name')]",
+              "location": "[parameters('Location')]"
+            }
+          ],
+          "outputs": {
+            "Name": {
+              "type": "string",
+              "value": "[parameters('Name')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'm2')]"
+      ]
+    }
+  ]
+}
